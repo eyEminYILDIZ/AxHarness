@@ -48,3 +48,29 @@ The project will make a chat completion request to OpenRouter using the `nvidia/
 ### Environment Variables
 
 - `OPENROUTER_API_KEY` - Your OpenRouter API key (required)
+
+
+## .NET Harness (C# / Microsoft Agent Framework)
+
+A console coding agent (Linux only) built on Microsoft Agent Framework with OpenRouter (OpenAI-compatible API).
+
+- Tools: `read_file`, `write_file`, `list_dir`, `run_command` (bash). File tools are confined to the root directory (the directory the app was started in). `write_file` / `run_command` ask for approval (`y` / `n` / `a`lways) unless `--yes` is passed. Note: shell commands are only limited by their working directory, so the approval prompt is the real guard.
+- Prompt: built-in static prompt + `Agents.md` from the root directory (if present).
+- Sessions are logged as JSONL in `<root>/.axharness/sessions/`; resume with `--resume <id|latest>`.
+
+### Setup
+
+```bash
+dotnet user-secrets set "OpenRouter:ApiKey" "<your key>" --project src/AxHarness
+```
+(`OPENROUTER_API_KEY` env var works as a fallback.)
+
+### Run
+
+```bash
+cd <your project>
+dotnet run --project <path-to-AxHarness>/src/AxHarness -- [--model <id>] [--yes] [--resume latest]
+```
+
+Try it on the (gitignored) playground: `cd examples/example_dotnet_1 && dotnet run --project ../../src/AxHarness`.
+REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Tests: `dotnet test`.
