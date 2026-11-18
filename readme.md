@@ -54,7 +54,7 @@ The project will make a chat completion request to OpenRouter using the `nvidia/
 
 A console coding agent (Linux only) built on Microsoft Agent Framework with OpenRouter (OpenAI-compatible API).
 
-- Tools: `read_file`, `write_file`, `list_dir`, `run_command` (bash). File tools are confined to the root directory (the directory the app was started in). `write_file` / `run_command` ask for approval (`y` / `n` / `a`lways) unless `--yes` is passed. Note: shell commands are only limited by their working directory, so the approval prompt is the real guard.
+- Tools: `read_file`, `write_file`, `list_dir`, `run_command` (bash). File tools are confined to the root directory (the directory the app was started in). `write_file` / `run_command` ask for approval (`yes` / `no`) unless `--yes` is passed. Note: shell commands are only limited by their working directory, so the approval prompt is the real guard.
 - Prompt: built-in static prompt + `Agents.md` from the root directory (if present).
 - Sessions are logged as JSONL in `<root>/.axharness/sessions/`; resume with `--resume <id|latest>`.
 
