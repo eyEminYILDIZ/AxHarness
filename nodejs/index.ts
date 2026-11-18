@@ -29,9 +29,9 @@ async function main() {
 
   const data: any = await res.json();
   const message = data.choices?.[0]?.message;
-  console.log('--- reasoning ---');
+  console.log('*********************************** REASONING OUTPUT START ***********************************');
   console.log(message?.reasoning ?? '(none returned)');
-  console.log('--- answer ---');
+  console.log('*********************************** ANSWER OUTPUT START **************************************');
   console.log(message?.content);
 }
 
