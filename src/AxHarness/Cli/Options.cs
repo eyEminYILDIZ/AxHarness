@@ -4,7 +4,7 @@ namespace AxHarness.Cli;
 
 public sealed class Options
 {
-    public const string DefaultModel = "nvidia/nemotron-3.5-lightning:free";
+    public const string DefaultModel = "nvidia/nemotron-3.5-super-vl:free";
 
     public Options(
         string root,
@@ -40,7 +40,7 @@ public sealed class Options
 
     public static string Usage => """
         Usage: AxHarness [options]
-          --model <id>          OpenRouter model id (env AXHARNESS_MODEL, default nvidia/nemotron-3.5-lightning:free)
+          --model <id>          OpenRouter model id (env AXHARNESS_MODEL, default nvidia/nemotron-3.5-super-vl:free)
           --yes                 Auto-approve write_file / run_command (no prompts)
           --max-iterations <n>  Max model<->tool round trips per user turn (default 40)
           --log-dir <path>      Session log dir (default <root>/.axharness/sessions)

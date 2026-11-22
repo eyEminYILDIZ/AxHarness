@@ -12,7 +12,7 @@ async function main() {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'nvidia/nemotron-3.5-lightning:free',
+      model: 'nvidia/nemotron-3.5-super-vl:free',
       reasoning: { effort: 'medium' },
       messages: [
         {

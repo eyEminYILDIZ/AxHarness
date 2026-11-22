@@ -33,7 +33,7 @@ Or directly with ts-node:
 npx ts-node nodejs/index.ts
 ```
 
-The project will make a chat completion request to OpenRouter using the `nvidia/nemotron-3.5-lightning:free` model.
+The project will make a chat completion request to OpenRouter using the `nvidia/nemotron-3.5-super-vl:free` model.
 
 ## Environment Variables
 
