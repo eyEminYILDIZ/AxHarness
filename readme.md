@@ -12,7 +12,7 @@ AxHarness is a cli coding agent harness. The console coding agent (Linux only) i
 - Prompt: built-in static prompt + `Agents.md` from the root directory (if present).
 - Sessions are logged as JSONL in `<root>/.axharness/sessions/`; resume with `--resume <id|latest>`.
 
-### Setup
+## Setup
 
 ```bash
 dotnet user-secrets set "OpenRouter:ApiKey" "<your key>" --project src/AxHarness
@@ -20,7 +20,7 @@ dotnet user-secrets set "OpenRouter:ApiKey" "<your key>" --project src/AxHarness
 
 (`OPENROUTER_API_KEY` env var works as a fallback.)
 
-### Run
+## Run
 
 ```bash
 cd <your project>
@@ -29,3 +29,14 @@ dotnet run --project <path-to-AxHarness>/src/AxHarness -- [--model <id>] [--yes]
 
 Try it on the (gitignored) playground: `cd examples/example_dotnet_1 && dotnet run --project ../../src/AxHarness`.
 REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Tests: `dotnet test`.
+
+## Features
+
+- [x] Text based chatting
+- [x] Tool calling (`read_file`, `write_file`, `list_dir`, `run_command`)
+- [x] Prompt file support (Agents.md)
+- [x] Session management (logging and resuming)
+- [x] Approval prompts for potentially dangerous actions (`write_file` and `run_command`)
+- [x] REPL support (`/help`, `/sessions`, `/clear`, `/exit`)
+- [x] Test support (`dotnet test`)
+- [ ] Image input support
