@@ -38,13 +38,19 @@ public sealed class SessionLogger : IDisposable
             obj["ts"] = DateTimeOffset.Now.ToString("o");
             obj["seq"] = ++_seq;
             obj["type"] = type;
+
             foreach (var (k, v) in fields)
                 obj[k] = v == null ? null : JsonSerializer.SerializeToNode(v);
+
             _writer.WriteLine(obj.ToJsonString());
         }
     }
 
-    public void Dispose() { lock (_gate) _writer.Dispose(); }
+    public void Dispose()
+    {
+        lock (_gate)
+            _writer.Dispose();
+    }
 
     // ---- session lookup helpers ----
     public static string? ResolvePath(string dir, string idOrLatest)
@@ -61,6 +67,7 @@ public sealed class SessionLogger : IDisposable
     {
         if (!Directory.Exists(dir))
             yield break;
+
         foreach (var f in new DirectoryInfo(dir).EnumerateFiles("*.jsonl").OrderByDescending(f => f.LastWriteTimeUtc).Take(max))
         {
             string first = "";
@@ -69,7 +76,10 @@ public sealed class SessionLogger : IDisposable
                 try
                 {
                     using var d = JsonDocument.Parse(line);
-                    if (d.RootElement.GetProperty("type").GetString() == "user") { first = d.RootElement.GetProperty("text").GetString() ?? ""; break; }
+                    if (d.RootElement.GetProperty("type").GetString() == "user")
+                    {
+                        first = d.RootElement.GetProperty("text").GetString() ?? ""; break;
+                    }
                 }
                 catch (JsonException) { }
             }

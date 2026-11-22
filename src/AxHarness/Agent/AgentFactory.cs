@@ -1,5 +1,6 @@
 using System.ClientModel;
 using AxHarness.Tools;
+using AxHarness.Cli;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using OpenAI;
@@ -32,8 +33,17 @@ public static class AgentFactory
                 AIFunctionFactory.Create(shell.run_command),
             ],
         };
-        if (opt.Reasoning is { } r && Enum.TryParse<ReasoningEffort>(r, true, out var effort))
-            chatOptions.Reasoning = new ReasoningOptions { Effort = effort };
+
+        if (opt.Reasoning != null)
+        {
+            ReasoningEffort effort;
+            bool parsed = Enum.TryParse<ReasoningEffort>(opt.Reasoning, true, out effort);
+
+            if (parsed)
+            {
+                chatOptions.Reasoning = new ReasoningOptions { Effort = effort };
+            }
+        }
 
         var pipeline = chat.AsBuilder()
             .UseFunctionInvocation(null, f => f.MaximumIterationsPerRequest = opt.MaxIterations)

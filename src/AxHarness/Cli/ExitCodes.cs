@@ -1,4 +1,4 @@
-namespace AxHarness;
+namespace AxHarness.Cli;
 
 internal static class ExitCodes
 {

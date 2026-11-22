@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace AxHarness;
+namespace AxHarness.Cli;
 
 public sealed class Options
 {

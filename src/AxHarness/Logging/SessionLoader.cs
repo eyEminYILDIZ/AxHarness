@@ -15,19 +15,36 @@ public static class SessionLoader
         int skipped = 0;
         ChatMessage? asst = null;
 
-        void CloseAssistant() { if (asst != null && asst.Contents.Count > 0) msgs.Add(asst); asst = null; }
+        void CloseAssistant()
+        {
+            if (asst != null && asst.Contents.Count > 0)
+                msgs.Add(asst);
+            asst = null;
+        }
 
         foreach (var line in File.ReadLines(path))
         {
             JsonElement e;
-            try { e = JsonDocument.Parse(line).RootElement; }
-            catch (JsonException) { skipped++; continue; }
-            if (!e.TryGetProperty("type", out var t)) { skipped++; continue; }
+            try
+            {
+                e = JsonDocument.Parse(line).RootElement;
+            }
+            catch (JsonException)
+            {
+                skipped++; continue;
+            }
+
+            if (!e.TryGetProperty("type", out var t))
+            {
+                skipped++; continue;
+            }
 
             switch (t.GetString())
             {
                 case "session_start":
-                    root = Str(e, "root"); model = Str(e, "model"); break;
+                    root = Str(e, "root");
+                    model = Str(e, "model");
+                    break;
                 case "user":
                     CloseAssistant();
                     msgs.Add(new ChatMessage(ChatRole.User, Str(e, "text") ?? ""));
@@ -37,14 +54,14 @@ public static class SessionLoader
                     asst.Contents.Add(new TextContent(Str(e, "text") ?? ""));
                     break;
                 case "tool_call":
-                {
-                    asst ??= new ChatMessage(ChatRole.Assistant, []);
-                    IDictionary<string, object?>? args = null;
-                    if (e.TryGetProperty("args", out var a) && a.ValueKind == JsonValueKind.Object)
-                        args = a.EnumerateObject().ToDictionary(p => p.Name, p => (object?)p.Value.Clone());
-                    asst.Contents.Add(new FunctionCallContent(Str(e, "callId") ?? "", Str(e, "name") ?? "", args));
-                    break;
-                }
+                    {
+                        asst ??= new ChatMessage(ChatRole.Assistant, []);
+                        IDictionary<string, object?>? args = null;
+                        if (e.TryGetProperty("args", out var a) && a.ValueKind == JsonValueKind.Object)
+                            args = a.EnumerateObject().ToDictionary(p => p.Name, p => (object?)p.Value.Clone());
+                        asst.Contents.Add(new FunctionCallContent(Str(e, "callId") ?? "", Str(e, "name") ?? "", args));
+                        break;
+                    }
                 case "tool_result":
                     CloseAssistant();
                     msgs.Add(new ChatMessage(ChatRole.Tool, [new FunctionResultContent(Str(e, "callId") ?? "", Str(e, "output") ?? "")]));
@@ -70,6 +87,15 @@ public static class SessionLoader
         msgs.RemoveAll(m => m.Contents.Count == 0);
     }
 
-    private static string? Str(JsonElement e, string name) =>
-        e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
+    private static string? Str(JsonElement e, string name)
+    {
+        if (e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String)
+        {
+            return v.GetString();
+        }
+        else
+        {
+            return null;
+        }
+    }
 }
