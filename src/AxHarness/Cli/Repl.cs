@@ -126,9 +126,27 @@ public sealed class Repl(Options opt)
 
     private async Task RunTurn(AIAgent agent, AgentSession session, SessionLogger log, string input, MentionResult mentions)
     {
-        log.Log("user", ("text", input), ("context", mentions.Context));
+        // Snapshot attachments into <session-id>/attachments/ before logging the turn (names use the turn's first seq).
+        var saved = new List<string?>();
         foreach (var a in mentions.Attachments)
-            log.Log("file_attached", ("path", a.Path), ("lines", a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated));
+        {
+            try
+            {
+                saved.Add(log.SaveAttachment(a.FullPath, a.Path));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                saved.Add(null);
+                Dim($"  ! could not save a copy of {a.Path}: {e.Message}\n");
+            }
+        }
+        // file_attached events come first: on resume they are matched to the next user event.
+        for (int i = 0; i < mentions.Attachments.Count; i++)
+        {
+            var a = mentions.Attachments[i];
+            log.Log("file_attached", ("path", a.Path), ("lines", a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated), ("saved", saved[i]));
+        }
+        log.Log("user", ("text", input));
         using var cts = _turn = new CancellationTokenSource();
         var text = new System.Text.StringBuilder();
         var reasoning = new System.Text.StringBuilder();

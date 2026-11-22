@@ -3,7 +3,7 @@ using AxHarness.Tools;
 
 namespace AxHarness.Cli;
 
-public sealed record Attachment(string Path, int Lines, long Bytes, bool Truncated);
+public sealed record Attachment(string Path, int Lines, long Bytes, bool Truncated, string FullPath = "");
 
 /// <summary>
 /// Result of expanding @path mentions. <see cref="Context"/> is the appended file block (null when nothing attached);
@@ -33,7 +33,7 @@ public static class FileMentions
         var errors = new List<string>();
         var attachments = new List<Attachment>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var block = new StringBuilder();
+        var blocks = new List<(string Path, string Text, bool Truncated)>();
         long total = 0;
 
         foreach (var token in FindTokens(input))
@@ -73,11 +73,8 @@ public static class FileMentions
                 break;
             }
 
-            block.Append("<file path=\"").Append(rel).AppendLine("\">").Append(read.Value.Text);
-            if (read.Value.Truncated)
-                block.AppendLine(TruncatedMarker);
-            block.AppendLine("</file>");
-            attachments.Add(new Attachment(rel, read.Value.Lines, read.Value.Bytes, read.Value.Truncated));
+            blocks.Add((rel, read.Value.Text, read.Value.Truncated));
+            attachments.Add(new Attachment(rel, read.Value.Lines, read.Value.Bytes, read.Value.Truncated, full));
         }
 
         // "\@" is an escape for a literal "@"; it is not a mention.
@@ -85,8 +82,44 @@ public static class FileMentions
         if (errors.Count > 0 || attachments.Count == 0)
             return new MentionResult(clean, null, attachments, errors);
 
-        var context = ContextHeader + "\n" + block.ToString().TrimEnd();
+        var context = BuildContext(blocks);
         return new MentionResult(Combine(clean, context), context, attachments, errors);
+    }
+
+    /// <summary>Renders the attachment block sent to the model (header + one &lt;file&gt; element per file).</summary>
+    public static string BuildContext(IEnumerable<(string Path, string Text, bool Truncated)> files)
+    {
+        var block = new StringBuilder();
+        foreach (var (path, text, truncated) in files)
+        {
+            block.Append("<file path=\"").Append(path).AppendLine("\">").Append(text);
+            if (truncated)
+                block.AppendLine(TruncatedMarker);
+            block.AppendLine("</file>");
+        }
+        return ContextHeader + "\n" + block.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// Rebuilds the block for a resumed turn from the copies saved in the session's attachments folder.
+    /// A copy that is missing or unreadable becomes a placeholder, so resuming never fails because of it.
+    /// </summary>
+    public static string? RebuildContext(string sessionDir, IReadOnlyList<(string Path, string? Saved)> files)
+    {
+        if (files.Count == 0)
+            return null;
+        var blocks = new List<(string, string, bool)>();
+        foreach (var (path, saved) in files)
+        {
+            var full = saved == null ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(sessionDir, saved));
+            var read = full != null && full.StartsWith(System.IO.Path.GetFullPath(sessionDir) + System.IO.Path.DirectorySeparatorChar, StringComparison.Ordinal) && File.Exists(full)
+                ? ReadFile(full, out _)
+                : null;
+            blocks.Add(read == null
+                ? (path, "[attachment no longer available]\n", false)
+                : (path, read.Value.Text, read.Value.Truncated));
+        }
+        return BuildContext(blocks);
     }
 
     /// <summary>The text actually sent to the model: raw user text plus the attachment block.</summary>

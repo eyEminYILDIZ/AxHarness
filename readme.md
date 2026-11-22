@@ -10,7 +10,7 @@ AxHarness is a cli coding agent harness. The console coding agent (Linux only) i
 
 - Tools: `read_file`, `write_file`, `list_dir`, `run_command` (bash). File tools are confined to the root directory (the directory the app was started in). `write_file` / `run_command` ask for approval (`yes` / `no`) unless `--yes` is passed. Note: shell commands are only limited by their working directory, so the approval prompt is the real guard.
 - Prompt: built-in static prompt + `Agents.md` from the root directory (if present).
-- Sessions are logged as JSONL in `<root>/.axharness/sessions/`; resume with `--resume <id|latest>`.
+- Sessions live in `<root>/.axharness/sessions/<session-id>/`: `session.jsonl` (the log) and `attachments/` (copies of every `@path` file, one snapshot per turn). Resume with `--resume <id|latest>`.
 
 ## Setup
 
