@@ -30,12 +30,16 @@ public sealed class Repl(Options opt)
         var prompt = PromptBuilder.Build(opt.Root, DateTimeOffset.Now);
         var agent = AgentFactory.Create(opt, prompt, guard, approval);
         var session = await NewSession(agent, history);
+        var limit = opt.ContextLimit ?? await ModelCatalog.FetchContextLengthAsync(opt.Model);
+        var assumed = limit == null;
+        limit ??= Options.DefaultContextLimit;
+        var usage = UsageTracker.FromLog(logger.Path, limit, assumed);
         logger.Log(history == null ? "session_start" : "session_resume",
             ("model", opt.Model), ("root", opt.Root), ("yes", opt.AutoApprove), ("version", "0.1"));
         if (history == null)
             logger.Log("system_prompt", ("text", prompt));
 
-        PrintBanner(logger.Id);
+        PrintBanner(logger.Id, limit, assumed);
 
         while (true)
         {
@@ -56,12 +60,15 @@ public sealed class Repl(Options opt)
                     case "/quit":
                         goto done;
                     case "/help":
-                        Console.WriteLine("/exit  /clear (new session)  /sessions (list logged sessions)  /help");
+                        Console.WriteLine("/exit  /clear (new session)  /sessions (list logged sessions)  /usage (token statistics)  /help");
                         Console.WriteLine("@path  attach a file (or png/jpeg/gif/webp image) to your message, e.g. fix the bugs in @src/Foo.cs  (\\@ = literal @)");
                         continue;
                     case "/sessions":
                         foreach (var s in SessionLogger.List(opt.LogDir))
                             Console.WriteLine($"{s.Id}  {s.Time:yyyy-MM-dd HH:mm}  {s.FirstUser}");
+                        continue;
+                    case "/usage":
+                        Console.WriteLine(usage.FormatSession());
                         continue;
                     case "/clear":
                         // close current session before starting a new one
@@ -72,6 +79,7 @@ public sealed class Repl(Options opt)
                         prompt = PromptBuilder.Build(opt.Root, DateTimeOffset.Now);
                         agent = AgentFactory.Create(opt, prompt, guard, approval);
                         session = await NewSession(agent, null);
+                        usage = new UsageTracker(limit, assumed);
                         logger.Log("session_start", ("model", opt.Model), ("root", opt.Root), ("yes", opt.AutoApprove), ("version", "0.1"));
                         logger.Log("system_prompt", ("text", prompt));
                         Console.WriteLine($"New session: {logger.Id}");
@@ -95,7 +103,7 @@ public sealed class Repl(Options opt)
                     ? $"  🖼 attached {a.Path} ({a.MediaType}, {FileMentions.FormatSize(a.Bytes)})\n"
                     : $"  📎 attached {a.Path} ({a.Lines} lines{(a.Truncated ? ", truncated" : "")})\n");
 
-            await RunTurn(agent, session, logger, line, mentions);
+            await RunTurn(agent, session, logger, usage, line, mentions);
         }
     done:
         logger.Log("session_end", ("reason", "exit"));
@@ -126,7 +134,7 @@ public sealed class Repl(Options opt)
         return s;
     }
 
-    private async Task RunTurn(AIAgent agent, AgentSession session, SessionLogger log, string input, MentionResult mentions)
+    private async Task RunTurn(AIAgent agent, AgentSession session, SessionLogger log, UsageTracker usage, string input, MentionResult mentions)
     {
         // Snapshot attachments into <session-id>/attachments/ before logging the turn (names use the turn's first seq).
         var saved = new List<string?>();
@@ -151,6 +159,7 @@ public sealed class Repl(Options opt)
                 ("lines", image ? null : a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated), ("saved", saved[i]));
         }
         log.Log("user", ("text", input));
+        usage.StartTurn();
         using var cts = _turn = new CancellationTokenSource();
         var text = new System.Text.StringBuilder();
         var reasoning = new System.Text.StringBuilder();
@@ -200,6 +209,7 @@ public sealed class Repl(Options opt)
                             break;
                         case UsageContent u:
                             log.Log("usage", ("input", u.Details.InputTokenCount), ("output", u.Details.OutputTokenCount), ("total", u.Details.TotalTokenCount));
+                            usage.Add(u.Details.InputTokenCount, u.Details.OutputTokenCount);
                             break;
                     }
                 }
@@ -220,6 +230,7 @@ public sealed class Repl(Options opt)
         {
             FlushText();
             _turn = null;
+            Dim($"  {usage.FormatTurn()}\n");
         }
     }
 
@@ -258,7 +269,7 @@ public sealed class Repl(Options opt)
         Console.WriteLine();
     }
 
-    private void PrintBanner(string sessionId)
+    private void PrintBanner(string sessionId, long? contextLimit, bool limitAssumed)
     {
         Console.WriteLine();
         WriteColored("  AxHarness", ConsoleColor.Cyan);
@@ -266,6 +277,7 @@ public sealed class Repl(Options opt)
         Console.WriteLine();
         Field("root", opt.Root, ConsoleColor.Blue);
         Field("model", opt.Model, ConsoleColor.Magenta);
+        Field("context", $"{contextLimit:N0} tokens{(limitAssumed ? " (assumed, model not found; use --context-limit)" : "")}", ConsoleColor.Gray);
         Field("session", sessionId, ConsoleColor.DarkYellow);
         if (PromptBuilder.FindAgentsMd(opt.Root) is { } am)
             Field("loaded", Path.GetFileName(am), ConsoleColor.Green);

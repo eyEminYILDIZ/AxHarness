@@ -13,6 +13,10 @@ NEVER-EVER DONT READ the Microsoft Dotnet Secrets.
 - Throw specific exceptions (e.g. `ToolException`); never swallow exceptions silently.
 - Cross-platform (Linux, macOS, Windows): no OS-specific APIs outside `Tools/ShellResolver`; guard any unavoidable difference with `OperatingSystem.Is*`. Never hard-code `/` separators, `/bin/bash` or case-sensitive path comparison (use `PathGuard.Comparison`).
 
+## Project Docs
+
+- For project overview, usage and architecture, see [readme.md](readme.md).
+
 ## Tests
 
 - xUnit in `tests/AxHarness.Tests`; test names use `Snake_case_describing_behavior`.

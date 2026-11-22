@@ -4,6 +4,9 @@ namespace AxHarness.Cli;
 
 public sealed class Options
 {
+    /// <summary>Assumed context window when neither --context-limit nor OpenRouter gives one (64k: below nearly all current chat models, so percentages err on the cautious side).</summary>
+    public const long DefaultContextLimit = 65_536;
+
     public const string DefaultModel = "nvidia/nemotron-3.5-super-vl:free";
 
     public Options(
@@ -38,6 +41,9 @@ public sealed class Options
     public int MaxIterations { get; set; }
     public string? Reasoning { get; set; }
 
+    /// <summary>Context window override in tokens; null means look it up from OpenRouter, falling back to <see cref="DefaultContextLimit"/>.</summary>
+    public long? ContextLimit { get; set; }
+
     public static string Usage => """
         Usage: AxHarness [options]
           --model <id>          OpenRouter model id (env AXHARNESS_MODEL, default nvidia/nemotron-3.5-super-vl:free)
@@ -46,6 +52,7 @@ public sealed class Options
           --log-dir <path>      Session log dir (default <root>/.axharness/sessions)
           --resume <id|latest>  Resume a logged session
           --reasoning <level>   low | medium | high (optional)
+          --context-limit <n>   Context window in tokens (default: looked up from OpenRouter, else 65536)
           -h, --help
         Shell: bash/sh on Linux and macOS, PowerShell (pwsh, else powershell) then cmd on Windows;
                override with env AXHARNESS_SHELL=bash|sh|pwsh|powershell|cmd
@@ -63,6 +70,7 @@ public sealed class Options
         string? model = null, logDir = null, resume = null, reasoning = null;
         bool yes = false;
         int maxIter = 40;
+        long? contextLimit = null;
 
         int i = 0;
 
@@ -85,6 +93,7 @@ public sealed class Options
                 case "--log-dir": logDir = Next(); break;
                 case "--resume": resume = Next(); break;
                 case "--reasoning": reasoning = Next(); break;
+                case "--context-limit": contextLimit = long.Parse(Next()); break;
                 default: throw new ArgumentException($"Unknown argument: {args[i]}");
             }
         }
@@ -96,7 +105,7 @@ public sealed class Options
             throw new InvalidOperationException(
                 "Missing API key 'OpenRouter:ApiKey'. Set it with: dotnet user-secrets set \"OpenRouter:ApiKey\" \"<key>\" --project <path to src/AxHarness>");
 
-        return new Options(
+        var options = new Options(
             root,
             model ?? config["AXHARNESS_MODEL"] ?? DefaultModel,
             apiKey,
@@ -104,6 +113,11 @@ public sealed class Options
             maxIter,
             Path.GetFullPath(logDir ?? Path.Combine(root, ".axharness", "sessions"), root),
             resume,
-            reasoning);
+            reasoning)
+        {
+            ContextLimit = contextLimit,
+        };
+
+        return options;
     }
 }
