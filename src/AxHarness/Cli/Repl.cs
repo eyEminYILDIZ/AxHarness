@@ -41,9 +41,11 @@ public sealed class Repl(Options opt)
             Console.WriteLine();
             WriteColored("> ", ConsoleColor.Green);
             var line = Console.ReadLine();
-            if (line == null) break;
+            if (line == null)
+                break;
             line = line.Trim();
-            if (line.Length == 0) continue;
+            if (line.Length == 0)
+                continue;
 
             if (line.StartsWith('/'))
             {
@@ -83,7 +85,8 @@ public sealed class Repl(Options opt)
 
     private (SessionLogger, List<ChatMessage>?) StartSession()
     {
-        if (opt.Resume == null) return (SessionLogger.Create(opt.LogDir), null);
+        if (opt.Resume == null)
+            return (SessionLogger.Create(opt.LogDir), null);
         var path = SessionLogger.ResolvePath(opt.LogDir, opt.Resume)
             ?? throw new InvalidOperationException($"Session '{opt.Resume}' not found in {opt.LogDir}");
         var loaded = SessionLoader.Load(path);

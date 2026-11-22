@@ -27,7 +27,8 @@ public sealed class PathGuard
         while (!Path.Exists(cur) && !IsLink(cur))
         {
             var parent = Path.GetDirectoryName(cur);
-            if (parent == null) return full;
+            if (parent == null)
+                return full;
             tail.Push(Path.GetFileName(cur));
             cur = parent;
         }

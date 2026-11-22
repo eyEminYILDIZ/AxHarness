@@ -17,7 +17,8 @@ public sealed class FileTools(PathGuard guard, Approval approval)
         try
         {
             var full = guard.Resolve(path);
-            if (!File.Exists(full)) return $"Error: file not found: {path}";
+            if (!File.Exists(full))
+                return $"Error: file not found: {path}";
             var len = new FileInfo(full).Length;
             var lines = File.ReadLines(full).Skip(Math.Max(offset, 1) - 1).Take(Math.Clamp(limit, 1, MaxReadLines));
             var sb = new StringBuilder();
@@ -65,7 +66,8 @@ public sealed class FileTools(PathGuard guard, Approval approval)
         try
         {
             var full = guard.Resolve(path);
-            if (!Directory.Exists(full)) return $"Error: directory not found: {path}";
+            if (!Directory.Exists(full))
+                return $"Error: directory not found: {path}";
             var entries = new DirectoryInfo(full).EnumerateFileSystemInfos()
                 .OrderBy(e => e is not DirectoryInfo).ThenBy(e => e.Name, StringComparer.Ordinal)
                 .Take(500)

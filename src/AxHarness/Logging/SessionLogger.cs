@@ -49,7 +49,8 @@ public sealed class SessionLogger : IDisposable
     // ---- session lookup helpers ----
     public static string? ResolvePath(string dir, string idOrLatest)
     {
-        if (!Directory.Exists(dir)) return null;
+        if (!Directory.Exists(dir))
+            return null;
         if (idOrLatest == "latest")
             return new DirectoryInfo(dir).EnumerateFiles("*.jsonl").OrderByDescending(f => f.LastWriteTimeUtc).FirstOrDefault()?.FullName;
         var p = System.IO.Path.Combine(dir, idOrLatest.EndsWith(".jsonl") ? idOrLatest : idOrLatest + ".jsonl");

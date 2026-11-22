@@ -15,7 +15,8 @@ public sealed class Approval(bool autoApprove)
 
     public bool Request(string what)
     {
-        if (_always) return true;
+        if (_always)
+            return true;
         var prev = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine();

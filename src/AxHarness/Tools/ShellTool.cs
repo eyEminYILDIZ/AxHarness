@@ -14,8 +14,10 @@ public sealed class ShellTool(PathGuard guard, Approval approval)
         [Description("The bash command line")] string command,
         [Description("Timeout in seconds (default 120, max 600)")] int timeout_seconds = DefaultTimeoutSeconds)
     {
-        if (string.IsNullOrWhiteSpace(command)) return "Error: command is empty";
-        if (!approval.Request($"run_command: {command}")) return "Denied: the user rejected this command.";
+        if (string.IsNullOrWhiteSpace(command))
+            return "Error: command is empty";
+        if (!approval.Request($"run_command: {command}"))
+            return "Denied: the user rejected this command.";
 
         var psi = new ProcessStartInfo("/bin/bash")
         {
