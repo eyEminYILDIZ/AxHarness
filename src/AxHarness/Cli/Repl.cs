@@ -57,7 +57,7 @@ public sealed class Repl(Options opt)
                         goto done;
                     case "/help":
                         Console.WriteLine("/exit  /clear (new session)  /sessions (list logged sessions)  /help");
-                        Console.WriteLine("@path  attach a file's contents to your message, e.g. fix the bugs in @src/Foo.cs  (\\@ = literal @)");
+                        Console.WriteLine("@path  attach a file (or png/jpeg/gif/webp image) to your message, e.g. fix the bugs in @src/Foo.cs  (\\@ = literal @)");
                         continue;
                     case "/sessions":
                         foreach (var s in SessionLogger.List(opt.LogDir))
@@ -91,7 +91,9 @@ public sealed class Repl(Options opt)
                 continue;
             }
             foreach (var a in mentions.Attachments)
-                Dim($"  📎 attached {a.Path} ({a.Lines} lines{(a.Truncated ? ", truncated" : "")})\n");
+                    Dim(a.Kind == AttachmentKind.Image
+                    ? $"  🖼 attached {a.Path} ({a.MediaType}, {FileMentions.FormatSize(a.Bytes)})\n"
+                    : $"  📎 attached {a.Path} ({a.Lines} lines{(a.Truncated ? ", truncated" : "")})\n");
 
             await RunTurn(agent, session, logger, line, mentions);
         }
@@ -144,7 +146,9 @@ public sealed class Repl(Options opt)
         for (int i = 0; i < mentions.Attachments.Count; i++)
         {
             var a = mentions.Attachments[i];
-            log.Log("file_attached", ("path", a.Path), ("lines", a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated), ("saved", saved[i]));
+            var image = a.Kind == AttachmentKind.Image;
+            log.Log("file_attached", ("path", a.Path), ("kind", image ? "image" : "text"), ("mediaType", a.MediaType),
+                ("lines", image ? null : a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated), ("saved", saved[i]));
         }
         log.Log("user", ("text", input));
         using var cts = _turn = new CancellationTokenSource();
@@ -169,7 +173,7 @@ public sealed class Repl(Options opt)
 
         try
         {
-            await foreach (var update in agent.RunStreamingAsync(mentions.Message, session, cancellationToken: cts.Token))
+            await foreach (var update in agent.RunStreamingAsync(mentions.ToChatMessage(), session, cancellationToken: cts.Token))
             {
                 foreach (var c in update.Contents)
                 {

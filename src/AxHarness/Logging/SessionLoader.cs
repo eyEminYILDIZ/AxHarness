@@ -15,7 +15,7 @@ public static class SessionLoader
         int skipped = 0;
         ChatMessage? asst = null;
         var sessionDir = System.IO.Path.GetDirectoryName(path)!;
-        var pending = new List<(string Path, string? Saved)>();
+        var pending = new List<AxHarness.Cli.PendingAttachment>();
 
         void CloseAssistant()
         {
@@ -48,11 +48,12 @@ public static class SessionLoader
                     model = Str(e, "model");
                     break;
                 case "file_attached":
-                    pending.Add((Str(e, "path") ?? "", Str(e, "saved")));
+                    pending.Add(new(Str(e, "path") ?? "", Str(e, "saved"), Str(e, "kind") == "image" ? AxHarness.Cli.AttachmentKind.Image : AxHarness.Cli.AttachmentKind.Text));
                     break;
                 case "user":
                     CloseAssistant();
-                    msgs.Add(new ChatMessage(ChatRole.User, AxHarness.Cli.FileMentions.Combine(Str(e, "text") ?? "", AxHarness.Cli.FileMentions.RebuildContext(sessionDir, pending))));
+                    var (context, images) = AxHarness.Cli.FileMentions.RebuildContext(sessionDir, pending);
+                    msgs.Add(AxHarness.Cli.FileMentions.BuildMessage(AxHarness.Cli.FileMentions.Combine(Str(e, "text") ?? "", context), images));
                     pending.Clear();
                     break;
                 case "assistant":

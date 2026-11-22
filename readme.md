@@ -28,7 +28,7 @@ dotnet run --project <path-to-AxHarness>/src/AxHarness -- [--model <id>] [--yes]
 ```
 
 Try it on the (gitignored) playground: `cd examples/example_dotnet_1 && dotnet run --project ../../src/AxHarness`.
-REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Attach files with `@path` (e.g. `fix the bugs in @src/Foo.cs`; `@"a b.txt"` for spaces, `\@` for a literal `@`). Tests: `dotnet test`.
+REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Attach files or images with `@path` (e.g. `fix the bugs in @src/Foo.cs`; `@"a b.txt"` for spaces, `\@` for a literal `@`). Tests: `dotnet test`.
 
 ## Features
 
@@ -40,4 +40,4 @@ REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Attach files with `@path
 - [x] F006 - REPL support (`/help`, `/sessions`, `/clear`, `/exit`)
 - [x] F007 - Test support (`dotnet test`)
 - [x] F008 - File input support (`@path` in a message attaches the file's contents)
-- [ ] F009 - Image input support
+- [x] F009 - Image input support (`@path` to a png/jpeg/gif/webp image sends it to the model; max 4 images, 5 MB each, 10 MB total; the model must support vision)
