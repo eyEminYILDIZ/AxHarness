@@ -51,7 +51,9 @@ public sealed class Repl(Options opt)
             {
                 switch (line.Split(' ')[0])
                 {
-                    case "/exit": case "/quit": goto done;
+                    case "/exit":
+                    case "/quit":
+                        goto done;
                     case "/help":
                         Console.WriteLine("/exit  /clear (new session)  /sessions (list logged sessions)  /help");
                         continue;
@@ -60,7 +62,10 @@ public sealed class Repl(Options opt)
                             Console.WriteLine($"{s.Id}  {s.Time:yyyy-MM-dd HH:mm}  {s.FirstUser}");
                         continue;
                     case "/clear":
-                        logger.Log("session_end", ("reason", "clear")); logger.Dispose();
+                        // close current session before starting a new one
+                        logger.Log("session_end", ("reason", "clear"));
+                        logger.Dispose();
+                        // start a new session
                         logger = SessionLogger.Create(opt.LogDir);
                         prompt = PromptBuilder.Build(opt.Root, DateTimeOffset.Now);
                         agent = AgentFactory.Create(opt, prompt, guard, approval);
@@ -92,7 +97,8 @@ public sealed class Repl(Options opt)
         var loaded = SessionLoader.Load(path);
         if (loaded.Root != null && loaded.Root != opt.Root)
             throw new InvalidOperationException($"Session was recorded in a different root ({loaded.Root}); refusing to resume.");
-        if (loaded.SkippedLines > 0) Console.WriteLine($"warning: skipped {loaded.SkippedLines} unreadable log line(s)");
+        if (loaded.SkippedLines > 0)
+            Console.WriteLine($"warning: skipped {loaded.SkippedLines} unreadable log line(s)");
         Console.WriteLine($"Resumed {loaded.Messages.Count} messages from {Path.GetFileName(path)}");
         return (SessionLogger.Open(path), loaded.Messages);
     }
@@ -100,7 +106,8 @@ public sealed class Repl(Options opt)
     private static async Task<AgentSession> NewSession(AIAgent agent, List<ChatMessage>? history)
     {
         var s = await agent.CreateSessionAsync();
-        if (history is { Count: > 0 }) s.SetInMemoryChatHistory(history);
+        if (history != null && history.Count > 0)
+            s.SetInMemoryChatHistory(history);
         return s;
     }
 
@@ -114,8 +121,17 @@ public sealed class Repl(Options opt)
 
         void FlushText()
         {
-            if (reasoning.Length > 0) { log.Log("reasoning", ("text", reasoning.ToString())); reasoning.Clear(); }
-            if (text.Length > 0) { log.Log("assistant", ("text", text.ToString())); text.Clear(); }
+            if (reasoning.Length > 0)
+            {
+                log.Log("reasoning", ("text", reasoning.ToString()));
+                reasoning.Clear();
+            }
+
+            if (text.Length > 0)
+            {
+                log.Log("assistant", ("text", text.ToString()));
+                text.Clear();
+            }
         }
 
         try
@@ -127,9 +143,12 @@ public sealed class Repl(Options opt)
                     switch (c)
                     {
                         case TextContent t when t.GetType() == typeof(TextContent):
-                            text.Append(t.Text); Console.Write(t.Text); break;
+                            text.Append(t.Text);
+                            Console.Write(t.Text);
+                            break;
                         case TextReasoningContent r:
-                            reasoning.Append(r.Text); break;
+                            reasoning.Append(r.Text);
+                            break;
                         case FunctionCallContent fc:
                             FlushText();
                             starts[fc.CallId] = DateTime.UtcNow;
@@ -169,11 +188,19 @@ public sealed class Repl(Options opt)
 
     private static string Brief(object? o, int max = 100)
     {
-        var s = o switch
+        string s;
+        if (o is IDictionary<string, object?> dict)
         {
-            IDictionary<string, object?> d => string.Join(", ", d.Select(kv => $"{kv.Key}={kv.Value}")),
-            _ => o?.ToString() ?? "",
-        };
+            var pairs = new List<string>();
+            foreach (var kv in dict)
+                pairs.Add($"{kv.Key}={kv.Value}");
+            s = string.Join(", ", pairs);
+        }
+        else if (o != null)
+            s = o.ToString() ?? "";
+        else
+            s = "";
+
         s = s.ReplaceLineEndings(" ");
         return s.Length > max ? s[..max] + "…" : s;
     }
@@ -188,6 +215,7 @@ public sealed class Repl(Options opt)
 
     private static void Field(string label, string value, ConsoleColor valueColor = ConsoleColor.White)
     {
+        // ",-8" left-aligns the label and pads it to 8 characters so values line up in a column
         WriteColored($"  {label,-8}", ConsoleColor.DarkGray);
         WriteColored(value, valueColor);
         Console.WriteLine();
