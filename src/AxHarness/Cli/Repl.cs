@@ -34,13 +34,12 @@ public sealed class Repl(Options opt)
             ("model", opt.Model), ("root", opt.Root), ("yes", opt.AutoApprove), ("version", "0.1"));
         if (history == null) logger.Log("system_prompt", ("text", prompt));
 
-        Console.WriteLine($"AxHarness | root: {opt.Root} | model: {opt.Model} | session: {logger.Id}");
-        if (PromptBuilder.FindAgentsMd(opt.Root) is { } am) Console.WriteLine($"Loaded {Path.GetFileName(am)}");
-        Console.WriteLine("Type /help for commands. Ctrl+C cancels a running turn.");
+        PrintBanner(logger.Id);
 
         while (true)
         {
-            Console.Write("\n> ");
+            Console.WriteLine();
+            WriteColored("> ", ConsoleColor.Green);
             var line = Console.ReadLine();
             if (line == null) break;
             line = line.Trim();
@@ -174,6 +173,41 @@ public sealed class Repl(Options opt)
         };
         s = s.ReplaceLineEndings(" ");
         return s.Length > max ? s[..max] + "…" : s;
+    }
+
+    private static void WriteColored(string s, ConsoleColor c)
+    {
+        var p = Console.ForegroundColor;
+        Console.ForegroundColor = c;
+        Console.Write(s);
+        Console.ForegroundColor = p;
+    }
+
+    private static void Field(string label, string value, ConsoleColor valueColor = ConsoleColor.White)
+    {
+        WriteColored($"  {label,-8}", ConsoleColor.DarkGray);
+        WriteColored(value, valueColor);
+        Console.WriteLine();
+    }
+
+    private void PrintBanner(string sessionId)
+    {
+        Console.WriteLine();
+        WriteColored("  AxHarness", ConsoleColor.Cyan);
+        Console.WriteLine();
+        Console.WriteLine();
+        Field("root", opt.Root, ConsoleColor.Blue);
+        Field("model", opt.Model, ConsoleColor.Magenta);
+        Field("session", sessionId, ConsoleColor.DarkYellow);
+        if (PromptBuilder.FindAgentsMd(opt.Root) is { } am)
+            Field("loaded", Path.GetFileName(am), ConsoleColor.Green);
+        Console.WriteLine();
+        WriteColored("  Type ", ConsoleColor.DarkGray);
+        WriteColored("/help", ConsoleColor.Yellow);
+        WriteColored(" for commands. ", ConsoleColor.DarkGray);
+        WriteColored("Ctrl+C", ConsoleColor.Yellow);
+        WriteColored(" cancels a running turn.", ConsoleColor.DarkGray);
+        Console.WriteLine();
     }
 
     private static void Dim(string s)
