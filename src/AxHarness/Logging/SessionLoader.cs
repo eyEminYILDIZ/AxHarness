@@ -47,7 +47,7 @@ public static class SessionLoader
                     break;
                 case "user":
                     CloseAssistant();
-                    msgs.Add(new ChatMessage(ChatRole.User, Str(e, "text") ?? ""));
+                    msgs.Add(new ChatMessage(ChatRole.User, AxHarness.Cli.FileMentions.Combine(Str(e, "text") ?? "", Str(e, "context"))));
                     break;
                 case "assistant":
                     asst ??= new ChatMessage(ChatRole.Assistant, []);

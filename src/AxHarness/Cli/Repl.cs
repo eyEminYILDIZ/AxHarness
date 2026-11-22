@@ -57,6 +57,7 @@ public sealed class Repl(Options opt)
                         goto done;
                     case "/help":
                         Console.WriteLine("/exit  /clear (new session)  /sessions (list logged sessions)  /help");
+                        Console.WriteLine("@path  attach a file's contents to your message, e.g. fix the bugs in @src/Foo.cs  (\\@ = literal @)");
                         continue;
                     case "/sessions":
                         foreach (var s in SessionLogger.List(opt.LogDir))
@@ -81,7 +82,18 @@ public sealed class Repl(Options opt)
                 }
             }
 
-            await RunTurn(agent, session, logger, line);
+            var mentions = FileMentions.Expand(line, guard);
+            if (!mentions.Ok)
+            {
+                foreach (var err in mentions.Errors)
+                    WriteColored($"  ✗ {err}\n", ConsoleColor.Red);
+                Dim("  Message not sent. Fix the @path (or write \\@ for a literal @) and try again.\n");
+                continue;
+            }
+            foreach (var a in mentions.Attachments)
+                Dim($"  📎 attached {a.Path} ({a.Lines} lines{(a.Truncated ? ", truncated" : "")})\n");
+
+            await RunTurn(agent, session, logger, line, mentions);
         }
     done:
         logger.Log("session_end", ("reason", "exit"));
@@ -112,9 +124,11 @@ public sealed class Repl(Options opt)
         return s;
     }
 
-    private async Task RunTurn(AIAgent agent, AgentSession session, SessionLogger log, string input)
+    private async Task RunTurn(AIAgent agent, AgentSession session, SessionLogger log, string input, MentionResult mentions)
     {
-        log.Log("user", ("text", input));
+        log.Log("user", ("text", input), ("context", mentions.Context));
+        foreach (var a in mentions.Attachments)
+            log.Log("file_attached", ("path", a.Path), ("lines", a.Lines), ("bytes", a.Bytes), ("truncated", a.Truncated));
         using var cts = _turn = new CancellationTokenSource();
         var text = new System.Text.StringBuilder();
         var reasoning = new System.Text.StringBuilder();
@@ -137,7 +151,7 @@ public sealed class Repl(Options opt)
 
         try
         {
-            await foreach (var update in agent.RunStreamingAsync(input, session, cancellationToken: cts.Token))
+            await foreach (var update in agent.RunStreamingAsync(mentions.Message, session, cancellationToken: cts.Token))
             {
                 foreach (var c in update.Contents)
                 {

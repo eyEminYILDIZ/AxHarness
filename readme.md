@@ -28,15 +28,16 @@ dotnet run --project <path-to-AxHarness>/src/AxHarness -- [--model <id>] [--yes]
 ```
 
 Try it on the (gitignored) playground: `cd examples/example_dotnet_1 && dotnet run --project ../../src/AxHarness`.
-REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Tests: `dotnet test`.
+REPL commands: `/help`, `/sessions`, `/clear`, `/exit`. Attach files with `@path` (e.g. `fix the bugs in @src/Foo.cs`; `@"a b.txt"` for spaces, `\@` for a literal `@`). Tests: `dotnet test`.
 
 ## Features
 
-- [x] Text based chatting
-- [x] Tool calling (`read_file`, `write_file`, `list_dir`, `run_command`)
-- [x] Prompt file support (Agents.md)
-- [x] Session management (logging and resuming)
-- [x] Approval prompts for potentially dangerous actions (`write_file` and `run_command`)
-- [x] REPL support (`/help`, `/sessions`, `/clear`, `/exit`)
-- [x] Test support (`dotnet test`)
-- [ ] Image input support
+- [x] F001 - Text based chatting
+- [x] F002 - Tool calling (`read_file`, `write_file`, `list_dir`, `run_command`)
+- [x] F003 - Prompt file support (Agents.md)
+- [x] F004 - Session management (logging and resuming)
+- [x] F005 - Approval prompts for potentially dangerous actions (`write_file` and `run_command`)
+- [x] F006 - REPL support (`/help`, `/sessions`, `/clear`, `/exit`)
+- [x] F007 - Test support (`dotnet test`)
+- [x] F008 - File input support (`@path` in a message attaches the file's contents)
+- [ ] F009 - Image input support
