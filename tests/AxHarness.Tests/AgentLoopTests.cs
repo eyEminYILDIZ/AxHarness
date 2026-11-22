@@ -1,5 +1,6 @@
 using AxHarness.Agent;
 using AxHarness.Tools;
+using AxHarness.Cli;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
