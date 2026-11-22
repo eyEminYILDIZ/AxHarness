@@ -20,7 +20,8 @@ file sealed class ScriptedClient : IChatClient
     public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
     {
-        foreach (var u in (await GetResponseAsync(messages, options, ct)).ToChatResponseUpdates()) yield return u;
+        foreach (var u in (await GetResponseAsync(messages, options, ct)).ToChatResponseUpdates())
+            yield return u;
     }
     public object? GetService(Type serviceType, object? serviceKey = null) => null;
     public void Dispose() { }

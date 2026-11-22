@@ -9,7 +9,8 @@ public sealed class PathGuard
 
     public string Resolve(string path)
     {
-        if (string.IsNullOrWhiteSpace(path)) throw new ToolException("path is empty");
+        if (string.IsNullOrWhiteSpace(path))
+            throw new ToolException("path is empty");
         var full = Path.GetFullPath(path, Root);
         var real = ResolveReal(full);
         if (real != Root && !real.StartsWith(Root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
@@ -36,7 +37,8 @@ public sealed class PathGuard
         var target = (info.Exists ? info.ResolveLinkTarget(true) : new FileInfo(cur).ResolveLinkTarget(true))?.FullName ?? cur;
         // Resolve links in parent components too.
         target = ResolveParents(target);
-        while (tail.Count > 0) target = Path.Combine(target, tail.Pop());
+        while (tail.Count > 0)
+            target = Path.Combine(target, tail.Pop());
         return Path.TrimEndingDirectorySeparator(target);
     }
 
@@ -50,7 +52,8 @@ public sealed class PathGuard
         {
             cur = Path.Combine(cur, part);
             var t = new DirectoryInfo(cur).ResolveLinkTarget(true) ?? new FileInfo(cur).ResolveLinkTarget(true);
-            if (t != null) cur = t.FullName;
+            if (t != null)
+                cur = t.FullName;
         }
         return cur;
     }

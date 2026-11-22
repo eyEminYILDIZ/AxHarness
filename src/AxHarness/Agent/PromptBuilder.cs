@@ -20,7 +20,8 @@ public static class PromptBuilder
         if (agentsMd != null)
         {
             var text = File.ReadAllText(agentsMd);
-            if (text.Length > MaxAgentsMdChars) text = text[..MaxAgentsMdChars] + "\n[Agents.md truncated]";
+            if (text.Length > MaxAgentsMdChars)
+                text = text[..MaxAgentsMdChars] + "\n[Agents.md truncated]";
             sb.AppendLine().AppendLine("# Agents.md (project instructions)").AppendLine(text.TrimEnd());
         }
         return sb.ToString();

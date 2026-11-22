@@ -24,12 +24,21 @@ public sealed class Approval(bool autoApprove)
         Console.ForegroundColor = prev;
         while (true)
         {
-            var a = ReadLine("need to approval (yes/no): ")?.Trim().ToLowerInvariant();
+            var a = ReadLine("need to approval (yes/no/always-yes): ")?.Trim().ToLowerInvariant();
             switch (a)
             {
-                case "y": case "yes": return true;
-                case "a": case "always": _always = true; return true;
-                case "n": case "no": case null: case "": return false;
+                case "y":
+                case "yes":
+                    return true;
+                case "a":
+                case "always":
+                    _always = true;
+                    return true;
+                case "n":
+                case "no":
+                case null:
+                case "":
+                    return false;
             }
         }
     }

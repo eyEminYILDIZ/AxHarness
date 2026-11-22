@@ -59,7 +59,8 @@ public sealed class SessionLogger : IDisposable
 
     public static IEnumerable<(string Id, DateTime Time, string FirstUser)> List(string dir, int max = 20)
     {
-        if (!Directory.Exists(dir)) yield break;
+        if (!Directory.Exists(dir))
+            yield break;
         foreach (var f in new DirectoryInfo(dir).EnumerateFiles("*.jsonl").OrderByDescending(f => f.LastWriteTimeUtc).Take(max))
         {
             string first = "";

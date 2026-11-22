@@ -32,7 +32,8 @@ public sealed class Repl(Options opt)
         var session = await NewSession(agent, history);
         logger.Log(history == null ? "session_start" : "session_resume",
             ("model", opt.Model), ("root", opt.Root), ("yes", opt.AutoApprove), ("version", "0.1"));
-        if (history == null) logger.Log("system_prompt", ("text", prompt));
+        if (history == null)
+            logger.Log("system_prompt", ("text", prompt));
 
         PrintBanner(logger.Id);
 

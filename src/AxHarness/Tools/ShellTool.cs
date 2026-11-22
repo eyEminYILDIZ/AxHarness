@@ -32,30 +32,58 @@ public sealed class ShellTool(PathGuard guard, Approval approval)
 
         var output = new StringBuilder();
         var gate = new object();
-        void Append(string? s) { if (s == null) return; lock (gate) output.AppendLine(s); }
+
+        void Append(string? s)
+        {
+            if (s == null)
+                return;
+            lock (gate)
+                output.AppendLine(s);
+        }
 
         using var proc = new Process { StartInfo = psi };
         proc.OutputDataReceived += (_, e) => Append(e.Data);
         proc.ErrorDataReceived += (_, e) => Append(e.Data);
-        try { proc.Start(); }
-        catch (Exception e) { return "Error: failed to start: " + e.Message; }
+
+        try
+        {
+            proc.Start();
+        }
+        catch (Exception e)
+        {
+            return "Error: failed to start: " + e.Message;
+
+        }
+
         proc.StandardInput.Close();
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Clamp(timeout_seconds, 1, 600)));
         bool timedOut = false;
-        try { await proc.WaitForExitAsync(cts.Token); }
+
+        try
+        {
+            await proc.WaitForExitAsync(cts.Token);
+        }
         catch (OperationCanceledException)
         {
             timedOut = true;
-            try { proc.Kill(entireProcessTree: true); } catch { }
+            try
+            {
+                proc.Kill(entireProcessTree: true);
+            }
+            catch { }
+
             await proc.WaitForExitAsync();
         }
+
         proc.WaitForExit(); // flush async readers
 
         string text;
-        lock (gate) text = output.ToString();
+        lock (gate)
+            text = output.ToString();
+
         if (text.Length > MaxOutputChars)
         {
             var half = MaxOutputChars / 2;
