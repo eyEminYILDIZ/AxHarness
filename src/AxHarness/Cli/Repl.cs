@@ -17,16 +17,22 @@ public sealed class Repl(Options opt)
 
         Console.CancelKeyPress += (_, e) =>
         {
-            if (_turn is { IsCancellationRequested: false } t) { e.Cancel = true; t.Cancel(); }
+            CancellationTokenSource? turn = _turn;
+
+            if (turn != null && !turn.IsCancellationRequested)
+            {
+                e.Cancel = true;
+                turn.Cancel();
+            }
         };
 
         var (logger, history) = StartSession();
         var prompt = PromptBuilder.Build(opt.Root, DateTimeOffset.Now);
         var agent = AgentFactory.Create(opt, prompt, guard, approval);
         var session = await NewSession(agent, history);
-        logger.Log(history is null ? "session_start" : "session_resume",
+        logger.Log(history == null ? "session_start" : "session_resume",
             ("model", opt.Model), ("root", opt.Root), ("yes", opt.AutoApprove), ("version", "0.1"));
-        if (history is null) logger.Log("system_prompt", ("text", prompt));
+        if (history == null) logger.Log("system_prompt", ("text", prompt));
 
         Console.WriteLine($"AxHarness | root: {opt.Root} | model: {opt.Model} | session: {logger.Id}");
         if (PromptBuilder.FindAgentsMd(opt.Root) is { } am) Console.WriteLine($"Loaded {Path.GetFileName(am)}");
@@ -36,7 +42,7 @@ public sealed class Repl(Options opt)
         {
             Console.Write("\n> ");
             var line = Console.ReadLine();
-            if (line is null) break;
+            if (line == null) break;
             line = line.Trim();
             if (line.Length == 0) continue;
 
@@ -78,11 +84,11 @@ public sealed class Repl(Options opt)
 
     private (SessionLogger, List<ChatMessage>?) StartSession()
     {
-        if (opt.Resume is null) return (SessionLogger.Create(opt.LogDir), null);
+        if (opt.Resume == null) return (SessionLogger.Create(opt.LogDir), null);
         var path = SessionLogger.ResolvePath(opt.LogDir, opt.Resume)
             ?? throw new InvalidOperationException($"Session '{opt.Resume}' not found in {opt.LogDir}");
         var loaded = SessionLoader.Load(path);
-        if (loaded.Root is not null && loaded.Root != opt.Root)
+        if (loaded.Root != null && loaded.Root != opt.Root)
             throw new InvalidOperationException($"Session was recorded in a different root ({loaded.Root}); refusing to resume.");
         if (loaded.SkippedLines > 0) Console.WriteLine($"warning: skipped {loaded.SkippedLines} unreadable log line(s)");
         Console.WriteLine($"Resumed {loaded.Messages.Count} messages from {Path.GetFileName(path)}");

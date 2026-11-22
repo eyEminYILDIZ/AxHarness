@@ -30,7 +30,7 @@ public sealed class ShellTool(PathGuard guard, Approval approval)
 
         var output = new StringBuilder();
         var gate = new object();
-        void Append(string? s) { if (s is null) return; lock (gate) output.AppendLine(s); }
+        void Append(string? s) { if (s == null) return; lock (gate) output.AppendLine(s); }
 
         using var proc = new Process { StartInfo = psi };
         proc.OutputDataReceived += (_, e) => Append(e.Data);

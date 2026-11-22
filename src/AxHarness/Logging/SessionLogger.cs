@@ -39,7 +39,7 @@ public sealed class SessionLogger : IDisposable
             obj["seq"] = ++_seq;
             obj["type"] = type;
             foreach (var (k, v) in fields)
-                obj[k] = v is null ? null : JsonSerializer.SerializeToNode(v);
+                obj[k] = v == null ? null : JsonSerializer.SerializeToNode(v);
             _writer.WriteLine(obj.ToJsonString());
         }
     }

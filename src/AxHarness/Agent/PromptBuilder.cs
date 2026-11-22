@@ -17,7 +17,7 @@ public static class PromptBuilder
         sb.AppendLine($"- Date: {now:yyyy-MM-dd}");
 
         var agentsMd = FindAgentsMd(root);
-        if (agentsMd is not null)
+        if (agentsMd != null)
         {
             var text = File.ReadAllText(agentsMd);
             if (text.Length > MaxAgentsMdChars) text = text[..MaxAgentsMdChars] + "\n[Agents.md truncated]";

@@ -27,7 +27,7 @@ public sealed class PathGuard
         while (!Path.Exists(cur) && !IsLink(cur))
         {
             var parent = Path.GetDirectoryName(cur);
-            if (parent is null) return full;
+            if (parent == null) return full;
             tail.Push(Path.GetFileName(cur));
             cur = parent;
         }
@@ -39,7 +39,7 @@ public sealed class PathGuard
         return Path.TrimEndingDirectorySeparator(target);
     }
 
-    private static bool IsLink(string p) => new FileInfo(p).LinkTarget is not null;
+    private static bool IsLink(string p) => new FileInfo(p).LinkTarget != null;
 
     private static string ResolveParents(string path)
     {
@@ -49,7 +49,7 @@ public sealed class PathGuard
         {
             cur = Path.Combine(cur, part);
             var t = new DirectoryInfo(cur).ResolveLinkTarget(true) ?? new FileInfo(cur).ResolveLinkTarget(true);
-            if (t is not null) cur = t.FullName;
+            if (t != null) cur = t.FullName;
         }
         return cur;
     }

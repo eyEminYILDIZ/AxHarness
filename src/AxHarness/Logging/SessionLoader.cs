@@ -15,7 +15,7 @@ public static class SessionLoader
         int skipped = 0;
         ChatMessage? asst = null;
 
-        void CloseAssistant() { if (asst is not null && asst.Contents.Count > 0) msgs.Add(asst); asst = null; }
+        void CloseAssistant() { if (asst != null && asst.Contents.Count > 0) msgs.Add(asst); asst = null; }
 
         foreach (var line in File.ReadLines(path))
         {
