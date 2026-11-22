@@ -52,7 +52,7 @@ public static class FileMentions
     {
         var errors = new List<string>();
         var attachments = new List<Attachment>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var seen = new HashSet<string>(PathGuard.Comparer);
         var elements = new List<string>();
         var images = new List<ImagePart>();
         long total = 0, imageTotal = 0;
@@ -120,12 +120,31 @@ public static class FileMentions
         }
 
         // "\@" is an escape for a literal "@"; it is not a mention.
-        var clean = errors.Count == 0 ? input.Replace("\\@", "@") : input;
+        var clean = errors.Count == 0 ? UnescapeLiteralAt(input) : input;
         if (errors.Count > 0 || attachments.Count == 0)
             return new MentionResult(clean, null, attachments, errors, images);
 
         var context = BuildContext(elements);
         return new MentionResult(Combine(clean, context), context, attachments, errors, images);
+    }
+
+    /// <summary>
+    /// Turns "\@" into a literal "@", but only where a mention could start (line start or after whitespace/opening bracket/quote).
+    /// A backslash inside a Windows path such as <c>@src\@types\a.d.ts</c> is left alone.
+    /// </summary>
+    internal static string UnescapeLiteralAt(string s)
+    {
+        var sb = new StringBuilder(s.Length);
+        for (int i = 0; i < s.Length; i++)
+        {
+            var atMentionPosition = i == 0 || char.IsWhiteSpace(s[i - 1]) || "([{\"'".IndexOf(s[i - 1]) >= 0;
+            if (s[i] == '\\' && atMentionPosition && i + 1 < s.Length && s[i + 1] == '@')
+            {
+                continue;
+            }
+            sb.Append(s[i]);
+        }
+        return sb.ToString();
     }
 
     /// <summary>Renders the attachment block sent to the model: the header followed by the per-attachment elements.</summary>
@@ -163,7 +182,7 @@ public static class FileMentions
         foreach (var a in files)
         {
             var full = a.Saved == null ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(sessionDir, a.Saved));
-            if (full == null || !full.StartsWith(root, StringComparison.Ordinal) || !File.Exists(full))
+            if (full == null || !full.StartsWith(root, PathGuard.Comparison) || !File.Exists(full))
             {
                 elements.Add(MissingElement(a));
                 continue;

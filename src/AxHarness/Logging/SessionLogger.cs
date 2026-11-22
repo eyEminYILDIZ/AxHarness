@@ -65,11 +65,22 @@ public sealed class SessionLogger : IDisposable
         int turnSeq;
         lock (_gate)
             turnSeq = _seq + 1;
-        var flat = relativePath.Replace("/", "__");
+        var flat = FlattenName(relativePath);
         var name = $"{turnSeq:D4}_{flat}";
         Directory.CreateDirectory(AttachmentsDir);
         File.Copy(sourceFullPath, System.IO.Path.Combine(AttachmentsDir, name), overwrite: true);
         return "attachments/" + name;
+    }
+
+    /// <summary>Turns a relative path into one file name: both separators become "__" and characters illegal on any OS become "_".</summary>
+    public static string FlattenName(string relativePath)
+    {
+        var flat = relativePath.Replace("/", "__").Replace("\\", "__");
+        foreach (var c in System.IO.Path.GetInvalidFileNameChars().Concat("<>:\"|?*"))
+        {
+            flat = flat.Replace(c, '_');
+        }
+        return flat;
     }
 
     public void Dispose()

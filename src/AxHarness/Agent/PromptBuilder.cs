@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using AxHarness.Tools;
 
 namespace AxHarness.Agent;
 
@@ -14,6 +15,7 @@ public static class PromptBuilder
         sb.AppendLine("# Runtime");
         sb.AppendLine($"- Root directory: {root}");
         sb.AppendLine($"- OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
+        sb.AppendLine($"- Shell for run_command: {ShellResolver.Resolve().Hint}");
         sb.AppendLine($"- Date: {now:yyyy-MM-dd}");
 
         var agentsMd = FindAgentsMd(root);

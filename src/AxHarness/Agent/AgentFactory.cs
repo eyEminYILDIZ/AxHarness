@@ -30,7 +30,7 @@ public static class AgentFactory
                 AIFunctionFactory.Create(files.read_file),
                 AIFunctionFactory.Create(files.write_file),
                 AIFunctionFactory.Create(files.list_dir),
-                AIFunctionFactory.Create(shell.run_command),
+                AIFunctionFactory.Create(shell.run_command, new AIFunctionFactoryOptions { Name = "run_command", Description = shell.Description }),
             ],
         };
 

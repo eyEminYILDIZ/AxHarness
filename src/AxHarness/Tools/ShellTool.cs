@@ -4,14 +4,20 @@ using System.Text;
 
 namespace AxHarness.Tools;
 
-public sealed class ShellTool(PathGuard guard, Approval approval)
+public sealed class ShellTool(PathGuard guard, Approval approval, ShellInfo? shellInfo = null)
 {
+    private readonly ShellInfo _shell = shellInfo ?? ShellResolver.Resolve();
+
+    /// <summary>Tool description shown to the model; names the shell so it uses the right syntax.</summary>
+    public string Description =>
+        $"Run a shell command with the project root as working directory. Shell: {_shell.Hint}. Returns exit code plus combined stdout/stderr. Requires user approval.";
+
     public const int MaxOutputChars = 30_000;
     public const int DefaultTimeoutSeconds = 120;
 
-    [Description("Run a bash command with the project root as working directory. Returns exit code plus combined stdout/stderr. Requires user approval.")]
+    [Description("Run a shell command with the project root as working directory. Returns exit code plus combined stdout/stderr. Requires user approval.")]
     public async Task<string> run_command(
-        [Description("The bash command line")] string command,
+        [Description("The shell command line")] string command,
         [Description("Timeout in seconds (default 120, max 600)")] int timeout_seconds = DefaultTimeoutSeconds)
     {
         if (string.IsNullOrWhiteSpace(command))
@@ -19,16 +25,17 @@ public sealed class ShellTool(PathGuard guard, Approval approval)
         if (!approval.Request($"run_command: {command}"))
             return "Denied: the user rejected this command.";
 
-        var psi = new ProcessStartInfo("/bin/bash")
+        var psi = new ProcessStartInfo
         {
             WorkingDirectory = guard.Root,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             UseShellExecute = false,
         };
-        psi.ArgumentList.Add("-c");
-        psi.ArgumentList.Add(command);
+        _shell.Configure(psi, command);
 
         var output = new StringBuilder();
         var gate = new object();

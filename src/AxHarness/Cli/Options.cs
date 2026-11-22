@@ -47,6 +47,8 @@ public sealed class Options
           --resume <id|latest>  Resume a logged session
           --reasoning <level>   low | medium | high (optional)
           -h, --help
+        Shell: bash/sh on Linux and macOS, PowerShell (pwsh, else powershell) then cmd on Windows;
+               override with env AXHARNESS_SHELL=bash|sh|pwsh|powershell|cmd
         API key: dotnet user-secrets set "OpenRouter:ApiKey" "<key>" --project <path to src/AxHarness>
                  (fallback: env OPENROUTER_API_KEY)
         """;

@@ -66,6 +66,7 @@ public class FileMentionTests
     [Theory]
     [InlineData("@../x")]
     [InlineData("@/etc/passwd")]
+    [InlineData("@C:\\Windows\\win.ini")]
     [InlineData("@missing.txt")]
     [InlineData("@dir")]
     [InlineData("@bin.dat")]
@@ -89,7 +90,10 @@ public class FileMentionTests
         using var _ = t;
         using var outside = new TempRoot();
         File.WriteAllText(Path.Combine(outside.Path, "s.txt"), "secret");
-        Directory.CreateSymbolicLink(Path.Combine(t.Path, "link"), outside.Path);
+        if (!TestSupport.TryCreateDirectorySymlink(Path.Combine(t.Path, "link"), outside.Path))
+        {
+            return;
+        }
         Assert.False(FileMentions.Expand("@link/s.txt", g).Ok);
     }
 

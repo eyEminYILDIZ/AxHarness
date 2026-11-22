@@ -11,7 +11,7 @@ NEVER-EVER DONT READ the Microsoft Dotnet Secrets.
 - Nullable reference types stay enabled; do not suppress with `!` unless unavoidable.
 - Private fields are `_camelCase`; types, methods and properties are `PascalCase`.
 - Throw specific exceptions (e.g. `ToolException`); never swallow exceptions silently.
-- Linux only: no Windows-specific APIs.
+- Cross-platform (Linux, macOS, Windows): no OS-specific APIs outside `Tools/ShellResolver`; guard any unavoidable difference with `OperatingSystem.Is*`. Never hard-code `/` separators, `/bin/bash` or case-sensitive path comparison (use `PathGuard.Comparison`).
 
 ## Tests
 

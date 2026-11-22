@@ -5,11 +5,7 @@ internal sealed class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        if (!OperatingSystem.IsLinux())
-        {
-            Console.Error.WriteLine("AxHarness supports Linux only.");
-            return ExitCodes.UnsupportedPlatform;
-        }
+        UseUtf8Console();
 
         if (args.Contains("-h") || args.Contains("--help"))
         {
@@ -25,6 +21,20 @@ internal sealed class Program
         {
             Console.Error.WriteLine(e.Message);
             return ExitCodes.BadArguments;
+        }
+    }
+
+    private static void UseUtf8Console()
+    {
+        try
+        {
+            var utf8 = new System.Text.UTF8Encoding(false);
+            Console.OutputEncoding = utf8;
+            Console.InputEncoding = utf8;
+        }
+        catch (IOException)
+        {
+            // No console attached (redirected or detached); the default encoding is fine.
         }
     }
 }
