@@ -243,7 +243,7 @@ public static class FileMentions
             int n = f.Read(head, 0, head.Length);
             return DetectImageType(head.AsSpan(0, n));
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
         {
             return null; // the text path reports the read failure
         }
@@ -268,7 +268,7 @@ public static class FileMentions
                 return null;
             return new ImagePart(full, mediaType, File.ReadAllBytes(full));
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
         {
             failure = e.Message;
             return null;
@@ -386,7 +386,7 @@ public static class FileMentions
             }
             return (sb.ToString(), lines, sb.Length, truncated);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
         {
             failure = e.Message;
             return null;

@@ -17,7 +17,7 @@ internal sealed class Program
         {
             return await new Repl(Options.Parse(args)).RunAsync();
         }
-        catch (Exception e) when (e is ArgumentException or InvalidOperationException or FormatException)
+        catch (Exception e) when (e is ArgumentException || e is InvalidOperationException || e is FormatException)
         {
             Console.Error.WriteLine(e.Message);
             return ExitCodes.BadArguments;

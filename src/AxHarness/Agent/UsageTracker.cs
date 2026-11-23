@@ -72,7 +72,7 @@ public sealed class UsageTracker
                     tracker.Add(Number(root, "input"), Number(root, "output"));
                 }
             }
-            catch (Exception e) when (e is JsonException or KeyNotFoundException or InvalidOperationException)
+            catch (Exception e) when (e is JsonException || e is KeyNotFoundException || e is InvalidOperationException)
             {
                 // Unreadable lines are already reported by SessionLoader.
             }
@@ -110,7 +110,7 @@ public sealed class UsageTracker
 
     private string FormatContext()
     {
-        if (ContextLimit is not > 0)
+        if (ContextLimit == null || ContextLimit <= 0)
         {
             return $"{Num(ContextUsed)} / unknown";
         }

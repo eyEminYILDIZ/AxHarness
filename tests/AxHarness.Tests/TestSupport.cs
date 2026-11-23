@@ -10,7 +10,7 @@ internal static class TestSupport
             Directory.CreateSymbolicLink(link, target);
             return true;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+        catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is PlatformNotSupportedException)
         {
             return false;
         }

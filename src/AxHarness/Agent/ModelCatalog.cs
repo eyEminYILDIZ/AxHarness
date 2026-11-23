@@ -14,7 +14,7 @@ public static class ModelCatalog
             using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
             return FindContextLength(doc.RootElement, model);
         }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or JsonException)
+        catch (Exception e) when (e is HttpRequestException || e is TaskCanceledException || e is JsonException)
         {
             return null;
         }

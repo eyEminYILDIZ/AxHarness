@@ -144,7 +144,7 @@ public sealed class Repl(Options opt)
             {
                 saved.Add(log.SaveAttachment(a.FullPath, a.Path));
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 saved.Add(null);
                 Dim($"  ! could not save a copy of {a.Path}: {e.Message}\n");
@@ -279,7 +279,8 @@ public sealed class Repl(Options opt)
         Field("model", opt.Model, ConsoleColor.Magenta);
         Field("context", $"{contextLimit:N0} tokens{(limitAssumed ? " (assumed, model not found; use --context-limit)" : "")}", ConsoleColor.Gray);
         Field("session", sessionId, ConsoleColor.DarkYellow);
-        if (PromptBuilder.FindAgentsMd(opt.Root) is { } am)
+        var am = PromptBuilder.FindAgentsMd(opt.Root);
+        if (am != null)
             Field("loaded", Path.GetFileName(am), ConsoleColor.Green);
         Console.WriteLine();
         WriteColored("  Type ", ConsoleColor.DarkGray);

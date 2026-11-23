@@ -33,7 +33,7 @@ public sealed class FileTools(PathGuard guard, Approval approval)
                 sb.AppendLine($"[truncated at line {n - 1}; use offset to continue]");
             return sb.Length == 0 ? "(empty or offset past end of file)" : sb.ToString();
         }
-        catch (Exception e) when (e is ToolException or IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is ToolException || e is IOException || e is UnauthorizedAccessException)
         {
             return "Error: " + e.Message;
         }
@@ -54,7 +54,7 @@ public sealed class FileTools(PathGuard guard, Approval approval)
             File.WriteAllText(full, content);
             return $"OK: wrote {content.Length} chars to {guard.Relative(full)}";
         }
-        catch (Exception e) when (e is ToolException or IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is ToolException || e is IOException || e is UnauthorizedAccessException)
         {
             return "Error: " + e.Message;
         }
@@ -75,7 +75,7 @@ public sealed class FileTools(PathGuard guard, Approval approval)
             var text = string.Join('\n', entries);
             return text.Length == 0 ? "(empty)" : text;
         }
-        catch (Exception e) when (e is ToolException or IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is ToolException || e is IOException || e is UnauthorizedAccessException)
         {
             return "Error: " + e.Message;
         }

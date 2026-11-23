@@ -26,7 +26,7 @@ public class ShellResolverTests
     [Fact]
     public void Windows_ignores_bash_on_path_unless_overridden()
     {
-        Assert.Equal(ShellKind.PowerShell, Resolve(true, n => n is "bash" or "powershell" ? "C:\\" + n : null).Kind);
+        Assert.Equal(ShellKind.PowerShell, Resolve(true, n => n == "bash" || n == "powershell" ? "C:\\" + n : null).Kind);
         Assert.Equal(ShellKind.Bash, Resolve(true, n => "C:\\" + n, "bash").Kind);
     }
 

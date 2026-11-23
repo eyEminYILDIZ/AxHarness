@@ -28,18 +28,21 @@ public static class ShellResolver
 
         if (windows)
         {
-            if (find("pwsh") is { } pwsh)
+            var pwsh = find("pwsh");
+            if (pwsh != null)
             {
                 return new ShellInfo("PowerShell (pwsh)", pwsh, ShellKind.PowerShell);
             }
-            if (find("powershell") is { } ps)
+            var ps = find("powershell");
+            if (ps != null)
             {
                 return new ShellInfo("Windows PowerShell 5.1", ps, ShellKind.PowerShell);
             }
             return new ShellInfo("cmd.exe", find("cmd") ?? "cmd.exe", ShellKind.Cmd);
         }
 
-        if (find("bash") is { } bash)
+        var bash = find("bash");
+        if (bash != null)
         {
             return new ShellInfo("bash", bash, ShellKind.Bash);
         }

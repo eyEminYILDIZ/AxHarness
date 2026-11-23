@@ -30,9 +30,13 @@ public sealed class PathGuard
         {
             throw new ToolException("path is empty");
         }
-        if (OperatingSystem.IsWindows() && WindowsPathProblem(path) is { } problem)
+        if (OperatingSystem.IsWindows())
         {
-            throw new ToolException($"path '{path}' is not allowed: {problem}");
+            var problem = WindowsPathProblem(path);
+            if (problem != null)
+            {
+                throw new ToolException($"path '{path}' is not allowed: {problem}");
+            }
         }
 
         var full = Path.GetFullPath(path, Root);

@@ -89,7 +89,7 @@ public static class SessionLoader
             for (int i = m.Contents.Count - 1; i >= 0; i--)
                 if ((m.Contents[i] is FunctionCallContent c && !results.Contains(c.CallId)) ||
                     (m.Contents[i] is FunctionResultContent r && !calls.Contains(r.CallId)) ||
-                    (m.Contents[i] is TextContent { Text: "" } && m.Role == ChatRole.Assistant && m.Contents.Count > 1))
+                    (m.Contents[i] is TextContent tc && tc.Text == "" && m.Role == ChatRole.Assistant && m.Contents.Count > 1))
                     m.Contents.RemoveAt(i);
         msgs.RemoveAll(m => m.Contents.Count == 0);
     }
